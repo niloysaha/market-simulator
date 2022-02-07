@@ -1,4 +1,4 @@
-# Market-simulator
+ Market-simulator
 A market simulator using real price information from the bitfinex rest end point so I can build and test and automate my trading strategies without relying on paid charting software like tradingview.
 
 
@@ -20,14 +20,16 @@ Right now just run the `main.py` to start and a simple text output will show you
 **Position size**
 File:     `main.py`
 Variable: `posSize`
-Value:    `1`
+Default Value:    `1`
 
 **Position target**
 File:     `position.py`
 Variable: `exitPrice`
-Value:    `entryPrice + 20`
+When a position is created i.e `pos = Position(posSize, entryPrice, target, stopLoss)` is used.
+target are multiplied as follows `exitPrice * (1 + target)` or `Position(1, close[0], 0.01, 0.03)`
 
 **Position stopLoss**
 File:     `position.py`
 Variable: `stopPrice`
-Value:    `entryPrice - 100`
+When a position is created i.e `pos = Position(posSize, entryPrice, target, stopLoss)` is used.
+stopLoss are multiplied as follows `stopPrice * (1 - stopLoss)` or `Position(1, close[0], 0.01, 0.03)`
