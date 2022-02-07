@@ -1,5 +1,5 @@
-# market-simulator
-A market simulator I can use to test and automate my trading strategies without relying on paid charting software like tradingview.
+# Market-simulator
+A market simulator that pulls real price information that I can use to test and automate my trading strategies without relying on paid charting software like tradingview.
 
 Later adding features that will connect to the exchange bitfinex so I am not limited to using their web interface to make orders and perform trades on my behalf.
 
