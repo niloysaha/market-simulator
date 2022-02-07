@@ -7,6 +7,8 @@ Bitfinex does have a python library already, and I'll eventually use it but this
 ## Future plans
 NodeJS - Instead of running off my PC in a terminal window I'll have this running on NodeJS somewhere
 
+Bring over Icarus and other indicators from tradingview to work natively with my application
+![image](https://user-images.githubusercontent.com/71242881/152858151-fbf7da9d-fa9e-4e91-83a5-d0fee8d71855.png)
 
 
 ## How to use
