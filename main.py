@@ -18,10 +18,12 @@ print('Last 15m close:' + str(lastClose))
 
 
 
+
+
 def getClose():
     return Candle('1m').close
 
-
+#Refactored totalQty
 def openPositions():
     openPos = 0
 
@@ -35,7 +37,7 @@ def openPositions():
 def displayData():
     print("---------------------------------------------")
     print('Total Profit: '      + str(profit))
-    print('Total Money Lost: '  + str(moneyLost))
+    print('Total Money Lost: ' + str(moneyLost))
     print('Positions total: '   + str(len(positionList)))
     print('Open Positions: '    + str(len(positionList) - (wins + losses)))
     print('Wins: '              + str(wins))
@@ -48,8 +50,7 @@ while(getClose() < 45000):
 
     # adds candle information to an array to be accessed later.
     bar.insert(0, Candle(timeframe))
-
-    close = bar[0]
+    close = bar[0].close
 
 
     # display current close price
@@ -63,38 +64,40 @@ while(getClose() < 45000):
 
         # Buy immediately if there are 0 open positions (For testing purposes)
         if(openPositions() == 0):
-            positionList.insert(0, Position(1, close))
-            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[0].exitPrice) + '] stop: [' + str(positionList[0].stopPrice) + ']')
+            positionList.append(Position(1, close))
+            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[-1].exitPrice) + '] stop: [' + str(positionList[-1].stopPrice) + ']')
 
 
         # Buy if current close price drops below the previous buy's entry price (For testing purposes)
-        if(close < positionList[-1].entryPrice):
-            positionList.insert(0, Position(1, close))
-            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[0].exitPrice) + '] stop: [' + str(positionList[0].stopPrice) + ']')
+        if((close) < ((positionList[-1].entryPrice))):
+            positionList.append(Position(1, close))
+            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[-1].exitPrice) + '] stop: [' + str(positionList[-1].stopPrice) + ']')
 
 
 
     # Iterate through
     for pos in positionList:
 
+        c = close
+
         if(pos.positionIsOpen):
 
             # Target hit
-            if (close > pos.exitPrice):
-                profit = profit + (close - pos.exitPrice)
+            if (c > pos.exitPrice):
+                profit = profit + (c - pos.exitPrice)
                 wins = wins + 1
                 pos.qty     = 0
-                lastClose   = close
+                lastClose   = c
                 pos.positionIsOpen = False
 
 
 
             # Stoploss
-            if (close < pos.stopPrice):
-                moneyLost = moneyLost - (close - pos.exitPrice)
+            if (c < pos.stopPrice):
+                moneyLost = moneyLost - (c - pos.exitPrice)
                 losses = losses + 1
                 pos.qty     = 0
-                lastClose   = close
+                lastClose   = c
                 pos.positionIsOpen = False
 
 
