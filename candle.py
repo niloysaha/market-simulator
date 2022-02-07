@@ -9,4 +9,3 @@ class Candle:
         self.close = candle[2]
         self.high = candle[3]
         self.low = candle[4]
-

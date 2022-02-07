@@ -3,9 +3,6 @@ import time
 from candle import Candle
 from position import Position
 
-
-"""Rewrite to use smaller increments for faster testing"""
-
 maxPositions = 3
 positionList = []
 profit  = 0
@@ -15,6 +12,14 @@ losses  = 0
 counter = 0
 lastClose = Candle('15m').close
 print('Last 5m close:' + str(lastClose))
+
+open = []
+close = []
+high = []
+low = []
+
+
+
 
 def getClose():
     return Candle('1m').close
@@ -38,6 +43,13 @@ while(getClose() < 45000):
     print('=====================================================')
     print('Current Close: ' + str(getClose()))
 
+    close.insert(0, getClose())
+
+    for closes in close:
+        print("bar close: " + str(closes))
+
+
+    
 
     # check total qty of shares from all positions
     totalqty = totalQty()

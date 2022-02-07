@@ -1,0 +1,23 @@
+{
+  "name": "market-simulator",
+  "version": "1.0.0",
+  "description": "A market simulator I can use to test and automate my trading strategies without relying on paid charting software like tradingview nor will I be limited the exchange interface to make my trades on sites like www.bitfinex.com",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Redjinator/market-simulator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Redjinator/market-simulator/issues"
+  },
+  "homepage": "https://github.com/Redjinator/market-simulator#readme",
+  "dependencies": {
+    "pandas": "^0.0.3"
+  }
+}
