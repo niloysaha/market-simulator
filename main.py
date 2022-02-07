@@ -49,13 +49,20 @@ while(getClose() < 45000):
     counter = counter + 1
 
     # adds candle information to an array to be accessed later.
-    bar.insert(0, Candle(timeframe))
-    close = bar[0].close
+    open = []
+    close = []
+    high = []
+    low = []
+    
+    close.insert(0, Candle(timeframe).close)
+    open.insert(0, Candle(timeframe).open)
+    high.insert(0, Candle(timeframe).high)
+    low.insert(0, Candle(timeframe).low)
 
 
     # display current close price
     print('=====================================================')
-    print('Current Close: ' + str(close))
+    print('Current Close: ' + str(close[0]))
 
 
 
@@ -64,44 +71,42 @@ while(getClose() < 45000):
 
         # Buy immediately if there are 0 open positions (For testing purposes)
         if(openPositions() == 0):
-            positionList.append(Position(1, close))
-            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[-1].exitPrice) + '] stop: [' + str(positionList[-1].stopPrice) + ']')
+            positionList.insert(0, Position(1, close[0]))
+            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[0].exitPrice) + '] stop: [' + str(positionList[0].stopPrice) + ']')
 
 
         # Buy if current close price drops below the previous buy's entry price (For testing purposes)
-        if((close) < ((positionList[-1].entryPrice))):
-            positionList.append(Position(1, close))
-            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[-1].exitPrice) + '] stop: [' + str(positionList[-1].stopPrice) + ']')
+        if((close[0]) < ((positionList[-1].entryPrice))):
+            positionList.insert(0, Position(1, close[0]))
+            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[0].exitPrice) + '] stop: [' + str(positionList[0].stopPrice) + ']')
 
 
 
     # Iterate through
     for pos in positionList:
 
-        c = close
-
         if(pos.positionIsOpen):
 
             # Target hit
-            if (c > pos.exitPrice):
-                profit = profit + (c - pos.exitPrice)
+            if (close[0] > pos.exitPrice):
+                profit = profit + (close[0] - pos.exitPrice)
                 wins = wins + 1
                 pos.qty     = 0
-                lastClose   = c
+                lastClose   = close[0]
                 pos.positionIsOpen = False
 
 
 
             # Stoploss
-            if (c < pos.stopPrice):
-                moneyLost = moneyLost - (c - pos.exitPrice)
+            if (close[0] < pos.stopPrice):
+                moneyLost = moneyLost - (close[0] - pos.exitPrice)
                 losses = losses + 1
                 pos.qty     = 0
-                lastClose   = c
+                lastClose   = close[0]
                 pos.positionIsOpen = False
 
 
     displayData()
 
-    time.sleep(3)
+    time.sleep(10)
 
