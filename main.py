@@ -1,3 +1,13 @@
+# Author: Reginald McPherson
+# Date modified: 7 Feb, 2022
+
+# TO-DO: 
+# - turn entire process into a self contained object so I can run multiple market simulations at a time with slightly input ranges (I couldn't do this with pine script, I had to test strategies one by one)
+# - take a JSON file of candle history that I pull from tradingview and use for testing.
+# - record to a JSON file OCHL values for various timeframes starting with (1hr, 4hr, daily, weekly, monthly)
+# - better display of data
+# - a way of displaying data from multiple instances (once I get multiple instances running)
+
 import requests
 import time
 from candle import Candle
@@ -12,7 +22,7 @@ moneyLost       = 0
 wins            = 0
 losses          = 0
 counter         = 0
-       
+
 
 bar = []
 positionList    = []

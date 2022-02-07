@@ -1,3 +1,9 @@
+# Author: Reginald McPherson
+# Date modified: 7 Feb, 2022
+
+# TO-DO: 
+
+
 import requests
 
 class Candle:

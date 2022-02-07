@@ -7,7 +7,15 @@ Bitfinex does have a python library already, and I'll eventually use it but this
 ## Future plans
 NodeJS - Instead of running off my PC in a terminal window I'll have this running on NodeJS somewhere
 
+# TO-DO: 
+- turn entire process into a self contained object so I can run multiple market simulations at a time with slightly input ranges (I couldn't do this with pine script, I had to test strategies one by one)
+- take a JSON file of candle history that I pull from tradingview and use for testing.
+- record to a JSON file OCHL values for various timeframes starting with (1hr, 4hr, daily, weekly, monthly)
+- better display of data
+- a way of displaying data from multiple instances (once I get multiple instances running)
 
+## Contributing
+I wasn't planning on opening this project up for contributions because it's a bit of a learning project for me and I'm having a lot of fun, but I suppose I'll open it up to the public.
 
 ## How to use
 Right now just run the `main.py` to start and a simple text output will show you how things are going.
