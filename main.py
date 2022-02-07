@@ -3,20 +3,19 @@ import time
 from candle import Candle
 from position import Position
 
+posSize         = 1
+timeframe       = "1m"
+maxPositions    = 3
 
-timeframe = "1m"
-maxPositions = 3
-positionList = []
-profit  = 0
-moneyLost = 0
-wins    = 0
-losses  = 0
-counter = 0
-lastClose = Candle('15m').close
+profit          = 0
+moneyLost       = 0
+wins            = 0
+losses          = 0
+counter         = 0
+       
+
 bar = []
-print('Last 15m close:' + str(lastClose))
-
-
+positionList    = []
 
 
 
@@ -71,13 +70,11 @@ while(getClose() < 45000):
 
         # Buy immediately if there are 0 open positions (For testing purposes)
         if(openPositions() == 0):
-            positionList.insert(0, Position(1, close[0]))
+            positionList.insert(0, Position(posSize, close[0], 0.001, 0.003))
             print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[0].exitPrice) + '] stop: [' + str(positionList[0].stopPrice) + ']')
-
-
-        # Buy if current close price drops below the previous buy's entry price (For testing purposes)
-        if((close[0]) < ((positionList[-1].entryPrice))):
-            positionList.insert(0, Position(1, close[0]))
+        # Buy if close is lower than previous position entryPrice
+        elif((close[0]) < ((positionList[0].entryPrice))):
+            positionList.insert(0, Position(posSize, close[0], 0.001, 0.003))
             print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[0].exitPrice) + '] stop: [' + str(positionList[0].stopPrice) + ']')
 
 
@@ -92,7 +89,6 @@ while(getClose() < 45000):
                 profit = profit + (close[0] - pos.exitPrice)
                 wins = wins + 1
                 pos.qty     = 0
-                lastClose   = close[0]
                 pos.positionIsOpen = False
 
 
@@ -102,7 +98,6 @@ while(getClose() < 45000):
                 moneyLost = moneyLost - (close[0] - pos.exitPrice)
                 losses = losses + 1
                 pos.qty     = 0
-                lastClose   = close[0]
                 pos.positionIsOpen = False
 
 
