@@ -7,6 +7,10 @@ Bitfinex does have a python library already, and I'll eventually use it but this
 ## Future plans
 NodeJS - Instead of running off my PC in a terminal window I'll have this running on NodeJS somewhere
 
+Convert my technical trading algorithms from pine script to python. (shown below on tradingview.com)
+![image](https://user-images.githubusercontent.com/71242881/152855392-2c4c718c-1dff-488b-9de5-b2da513955f9.png)
+
+
 ## How to use
 Right now just run the `main.py` to start and a simple text output will show you how things are going.
 
