@@ -1,7 +1,27 @@
 # Market-simulator
-A market simulator that pulls real price information that I can use to test and automate my trading strategies without relying on paid charting software like tradingview.
+A market simulator using real price information from the bitfinex rest end point so I can build and test and automate my trading strategies without relying on paid charting software like tradingview.
 
-Later adding features that will connect to the exchange bitfinex so I am not limited to using their web interface to make orders and perform trades on my behalf.
+## Why not use the official libraries?
+Bitfinex does have a python library already, and I'll eventually use it but this is a project I've wanted to do for a long time do I'm going to see what I can produce on my own as much as possible before using their library so I can see what problems I run into first.
 
-### Why not use the python lib already built by bitfinex?
-Because I want to strengthen my programming skills and end up with a tool I can continue to use to my advantage when I'm done.
+## Future plans
+NodeJS - Instead of running off my PC in a terminal window I'll have this running on NodeJS somewhere
+
+## How to use
+Right now just run the `main.py` to start and a simple text output will show you how things are going.
+
+## Basic settings 
+**Position size**
+File:     `main.py`
+Variable: `posSize`
+Value:    `1`
+
+**Position target**
+File:     `position.py`
+Variable: `exitPrice`
+Value:    `entryPrice + 20`
+
+**Position stopLoss**
+File:     `position.py`
+Variable: `stopPrice`
+Value:    `entryPrice - 100`
