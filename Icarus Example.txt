@@ -1,0 +1,414 @@
+// @version=4
+study("Icarus: Test Build v0.98", overlay=true)
+
+// Note to self (Dec 2020: Make github repo, this lack of version control is wasting too much time.
+
+
+//Basic Color Methods (with and without transparency)
+//////////////////////////////////////////////////////////////////////////////// 
+ryg(series)=> 
+    colorOutput = close>series? color.new(color.lime, 75) : close<series? color.new(color.red, 75) : color.new(color.yellow, 75)
+
+rygPure(series)=> 
+    colorOutput = close>series? color.lime : close<series? color.red : color.yellow
+    
+
+
+// HTF Timeframe Converter
+//////////////////////////////////////////////////////////////////////////////// 
+//      Converts length of higher timeframe moving averages to their equivelent lower timeframes. Results in more accurate viewing of higher timeframe MA's on lower timeframe charts.
+//      Useage Example: 
+//      
+//      ema200_4hr = ema(close, HTF(240, 200))
+//
+//      (above) Will give you the 4h version of ema200 on lower timeframes, however there is a limit as trying to view a 4hr 200ema on a 1 min chart is just too many candles even for premium TV accounts.
+////////////////////////////////////////////////////////////////////////////////
+HTF(timeframe, len)=>  
+    (timeframe * len)/timeframe.multiplier
+
+
+
+// More Convenience methods
+//==============================================================================
+
+// increase/decrease, returns boolean t/f
+inc(series)=> series>series[1]
+dec(series)=> series<series[1]
+
+
+// checks the difference between 2 numbers, and returns the result in PERCENTAGE
+diff(v1,v2)=>
+    h=max(v1,v2)
+    l=min(v1,v2)
+    v=((h-l)/h)*100
+
+
+// checks for low1/high1, using it on series data generally is more useful than on price.
+low1(v)=> v[1]<v[2] and v>v[1]
+high1(v)=>v[1]>v[2] and v<v[1]
+
+
+// checks to see if "data" is between var1 and var2
+// I use this sometimes to see if price is between 2 S/R levels or 2 moving averages.
+between(data, v1, v2)=>
+    h=max(v1,v2)
+    l=min(v1,v2)
+    ((data >= l) and (data < h))
+
+
+// Indicators and other data
+////////////////////////////////////////////////////////////////////////////////
+rsi                  = rsi(close, 14)
+
+// supertrend
+float factor         = 3.1416//input(3.1416)
+[supertrend, status] = supertrend(factor, 100)
+
+
+// RSI Bands
+// ORIGINAL AUTHOR = LazyBear (Thank you LazyBear!)
+
+
+
+dispRsiBands        = input(false, "Display RSI Bands? (Credit to LazyBear, original author)")
+
+RSIBands(tf, len)=>
+    length  = HTF(tf, len) // Should have done this one
+    ep      = 2 * length - 1 // not this one
+    auc     = ema( max( close - close[1], 0 ), ep )
+    adc     = ema( max( close[1] - close, 0 ), ep )
+    x1      = (length - 1) * ( adc * 70 / (100-70) - auc)
+    ub      = iff( x1 >= 0, close + x1, close + x1 * (100-70)/70 )
+    x2      = (length - 1) * ( adc * 30 / (100-30) - auc)
+    lb      = iff( x2 >= 0, close + x2, close + x2 * (100-30)/30 )
+    mid     = avg(ub, lb)
+    [ub, mid, lb]
+
+
+[u1, m1, l1]    = RSIBands(timeframe.multiplier, 14)
+plot(u1, style=plot.style_circles, color=color.orange, trackprice=true, transp=0)
+
+///////////////////////////////////
+// FOR TESTING
+//////////////////////////////////
+rsiOnChart(resetLevel)=>
+    length      = input(14, title="RSI Length")
+    src         = close
+    ep      = 2 * length - 1                                                    
+    auc     = ema( max( src - src[1], 0 ), ep )         // As far as I can tell, these are used as the basis for direction
+    adc     = ema( max( src[1] - src, 0 ), ep )         // As far as I can tell, these are used as the basis for direction
+    //////////////////////////////////////////////////////////////////////
+    x1      = (length - 1) * ( adc * resetLevel / (100-resetLevel) - auc)
+    ub      = iff( x1 >= 0, src + x1, src + x1 * (100-resetLevel)/resetLevel )
+    xx1     = 13 * (adc*resetLevel / (100 - resetLevel) - auc)
+    uub = (xx1 >= 0)? src + xx1: (src+xx1 * (100-resetLevel)/resetLevel)
+    uub
+
+targetLevel     = input(50, title="RSI Reset")
+rsi0    = rsiOnChart(targetLevel)
+
+// RSI Momentum Cloud 
+//==============================================================================
+useRsiCloud     = input(true, title="Show RSI Momentum Cloud?")
+
+rsiAbove50      = close>rsi0
+rpt1            = plot(useRsiCloud? ema(close, 9) : na, color=color.black, transp=100, title="Ema9 (part of RSI Momentum Cloud")
+rpt2            = plot(useRsiCloud? rsi0 : na, color=color.black, title="RSI50 representation on Chart", transp=100)
+fill(rpt1, rpt2, color=rsiAbove50? color.blue:color.orange, title="RSI Momentum Cloud", transp=70)
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////// 
+// ICARUS: Authored by Redjinator (me)
+//
+// Icarus similair to using a spread of moving averages, however instead of tracking Close Price, it tracks supertrends or vwaps
+// across various timeframes.
+//////////////////////////////////////////////////////////////////////////////// 
+autoTimeframe       = timeframe.multiplier*4
+useAutoTimeframe    = true//input(true, title="Use autoTF? (recommended)")
+fastTF              = autoTimeframe//useAutoTimeframe? autoTimeframe : input(60, step=1, title="Icarus Timeframe: default chart or 4x on daily") //(timeframe.multiplier==5 or timeframe.multiplier==1)? 7: 
+slowTF              = fastTF * 7
+icarusLength        = input(7, title="Icarus Length (7 default)")
+
+// Icarus Method
+Icarus(source, maxTimeframe)=>
+    increment   = round(maxTimeframe/7)
+    t1 = sma(source, HTF(round(increment), icarusLength))
+    t2 = sma(source, HTF(round(maxTimeframe * 0.236), icarusLength)) 
+    t3 = sma(source, HTF(round(maxTimeframe * 0.382), icarusLength)) 
+    t4 = sma(source, HTF(round(maxTimeframe * 0.5), icarusLength)) 
+    t5 = sma(source, HTF(round(maxTimeframe * 0.618), icarusLength)) 
+    t6 = sma(source, HTF(round(maxTimeframe * 0.786), icarusLength)) 
+    t7 = sma(source, HTF(round(maxTimeframe), icarusLength))
+    [t1,t2,t3,t4,t5,t6,t7]
+
+
+// Icarus baseData selection
+//==================================================
+useVwap     = input(false,  title="(choose 1) Use Vwap for Icarus Base")
+useRSI50    = input(true,  title="(choose 1) Use RSI 50 for Icarus Base")
+useSuper    = input(false,  title="(choose 1) Use Supertrend for Icarus Base")
+useEma9     = input(false,   title="(choose 1) Use ema9 len for Icarus Base")
+
+
+
+
+
+
+baseData    = useVwap and not useRSI50 and not useSuper and not useEma9? vwap : useRSI50 and not useVwap and not useSuper and not useEma9? rsi0 : useSuper and not useRSI50 and not useVwap and not useEma9? supertrend: useEma9 and not useRSI50 and not useVwap and not useSuper? ema(close, 9) : na
+
+
+[f1,f2,f3,f4,f5,f6,f7]  = Icarus(baseData, fastTF)
+[s1,s2,s3,s4,s5,s6,s7]  = Icarus(baseData, slowTF)
+
+
+
+
+// Messing around with arrays and line transparency
+//------------------------------------------------
+reduce(highNum, lowNum, steps)=>
+    // create an array to hold transparency levels
+    var transpLevels = array.new_float(steps)
+    
+    // calculate the size difference between the amount of specified steps
+    stepSize    = abs((highNum-lowNum)/steps)
+    for i=0 to steps-1
+        array.shift(transpLevels)
+        array.push(transpLevels, (highNum-(stepSize*i)))
+    [array.get(transpLevels, 0), array.get(transpLevels, 1), array.get(transpLevels, 2), array.get(transpLevels, 3), array.get(transpLevels, 4), array.get(transpLevels, 5), array.get(transpLevels, 6), array.get(transpLevels, 7), array.get(transpLevels, 8), array.get(transpLevels, 9), array.get(transpLevels, 10), array.get(transpLevels, 11)]
+
+[t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11,t12] = reduce(95, 40, 12)
+    
+
+transparency1 = 95 
+transparency2 = 92
+transparency3 = 89
+transparency4 = 86
+transparency5 = 83
+transparency6 = 80
+transparency7 = 77
+transparency8 = 74
+transparency9 = 71
+transparency10 = 68
+transparency11 = 65
+transparency12 = 62
+
+
+
+
+
+g1  = f1>f2? color.new(color.green, transparency1) : color.new(color.green, transparency1) //transparency12)
+g2  = f2>f3? color.new(color.green, transparency2) : color.new(color.green, transparency2) //transparency11)
+g3  = f3>f4? color.new(color.green, transparency3) : color.new(color.green, transparency3) //transparency10)
+y1  = f4>f5? color.new(color.yellow, transparency4) : color.new(color.yellow, transparency4) //transparency9)
+y2  = f5>f6? color.new(color.yellow, transparency5) : color.new(color.yellow, transparency5) //transparency8)
+y3  = f6>f7? color.new(color.yellow, transparency6) : color.new(color.yellow, transparency6) //transparency7)
+o1  = s1>s2? color.new(color.orange, 100) : color.new(color.orange, 100) //transparency6)
+o2  = s2>s3? color.new(color.orange, 100) : color.new(color.orange, 100) //transparency5)
+o3  = s3>s4? color.new(color.orange, transparency9) : color.new(color.orange, transparency9) //transparency4)
+r1  = s4>s5? color.new(color.red, 100) : color.new(color.red, 100) //transparency3)
+r2  = s5>s6? color.new(color.red, 100) : color.new(color.red, 100) //transparency2)
+r3  = s6>s7? color.new(color.red, transparency12) : color.new(color.red, transparency12) //transparency1)
+
+//////////////////////////////////////////////////////////////////////////////// ZONES
+// bool zone0  = between(close, vwap, f1)
+// bool zone1  = between(close, f1, f4)
+// bool zone2  = between(close, f4, f7)
+// bool zone3  = between(close, s1, s4)
+// bool zone4  = between(close, s4, s7)
+
+
+//bgcolor(zone0? color.lime: zone1? color.green: zone2? color.yellow: zone3? color.orange: zone4? color.red: na, transp=80)
+
+//////////////////////////////////////////////////////////////////////////////// VISUALS: FAST SET
+
+displayFast     = input(true, title="Display fast timeframes")
+
+lineColor   = color.new(color.black, 80)
+
+pt01 = plot(displayFast? f1:na, color=lineColor, linewidth=1, title="Fast 1", transp=0)
+pt02 = plot(displayFast? f2:na, color=lineColor, linewidth=1, title="Fast 2", transp=0)
+pt03 = plot(displayFast? f3:na, color=lineColor, linewidth=1, title="Fast 3", transp=0)
+pt04 = plot(displayFast? f4:na, color=lineColor, linewidth=1, title="Fast 4", transp=0)
+pt05 = plot(displayFast? f5:na, color=lineColor, linewidth=1, title="Fast 5", transp=0)
+pt06 = plot(displayFast? f6:na, color=lineColor, linewidth=1, title="Fast 6", transp=0)
+pt07 = plot(displayFast? f7:na, color=color.white, linewidth=1, title="Fast 7", transp=0)
+//////////////////////////////////////////////////////////////////////////////// VISUALS: SLOW SET
+displaySlow     = input(false, title="Display slow timeframes")
+pt08 = plot(displaySlow? s1:na, color=color.white, linewidth=2, title="Slow 1", transp=100)
+pt09 = plot(displaySlow? s2:na, color=color.white, linewidth=1, title="Slow 2", transp=100)
+pt10 = plot(displaySlow? s3:na, color=color.white, linewidth=1, title="Slow 3", transp=100)
+pt11 = plot(displaySlow? s4:na, color=color.white, linewidth=1, title="Slow 4", transp=100)
+pt12 = plot(displaySlow? s5:na, color=color.white, linewidth=1, title="Slow 5", transp=100)
+pt13 = plot(displaySlow? s6:na, color=color.white, linewidth=1, title="Slow 6", transp=100)
+pt14 = plot(displaySlow? s7:na, color=color.white, linewidth=1, title="Slow 7", transp=100)
+
+//fvColor = vwap>f1? color.new(color.green, 100) : color.new(color.red, 100)
+//vplot   = plot(vwap, color=color.white, title="Basic Vwap", transp=0)
+//fill(vplot, pt01, fvColor, transp=0)
+
+fill(pt01, pt02, g1, transp=0)
+fill(pt02, pt03, g2, transp=0)
+fill(pt03, pt04, g3, transp=0)
+fill(pt04, pt05, y1, transp=0)
+fill(pt05, pt06, y2, transp=0)
+fill(pt06, pt07, y3, transp=0)
+fill(pt08, pt09, o1, transp=0)
+fill(pt09, pt10, o2, transp=0)
+fill(pt10, pt11, o3, transp=0)
+fill(pt11, pt12, r1, transp=0)
+fill(pt12, pt13, r2, transp=0)
+fill(pt13, pt14, r3, transp=0)
+
+
+// PROTOTYPING---------
+// Needs refactor now that arrays are in Pinescript.
+
+// (Below) TODO: Serialize position data, then observe charts and find repeatable patters and look at the serial number, copy it, and set alerts for when that serialized number shows up again.
+/////////////////////////////////////////////////////////////////////////////// 
+// p1  = close<=f1? 0: 1
+// p2  = close<=f2? 0: 1
+// p3  = close<=f3? 0: 1
+// p4  = close<=f4? 0: 1
+// p5  = close<=f5? 0: 1
+// p6  = close<=f6? 0: 1
+// p7  = close<=f7? 0: 1
+
+// pp1  = close<=s1? 0: 1
+// pp2  = close<=s2? 0: 1
+// pp3  = close<=s3? 0: 1
+// pp4  = close<=s4? 0: 1
+// pp5  = close<=s5? 0: 1
+// pp6  = close<=s6? 0: 1
+// pp7  = close<=s7? 0: 1
+
+//////////////////////////////////////////////////////////////////////////////// INDEX CODE SEARCH
+// index_stringF               = tostring(p1)  + tostring(p2)  + tostring(p3)  + tostring(p4)  + tostring(p5)  + tostring(p6)  + tostring(p7)
+// index_stringS               = tostring(pp1) + tostring(pp2) + tostring(pp3) + tostring(pp4) + tostring(pp5) + tostring(pp6) + tostring(pp7)
+// displayFastSearchResults    = input(false, title="Display Fast Index Search Results on chart? (AQUA)")
+// displaySlowSearchResults    = input(false, title="Display Slow Index Search Results on chart? (FUCHSIA)")
+// searchInputF                = input("1111111", type=input.string, title="Fast Index Search")
+// searchInputS                = input("1111111", type=input.string, title="Slow Index Search")
+// bgcolor(displayFastSearchResults and searchInputF==index_stringF? color.aqua:na, title="Highlight BG: Fast Index Search", transp=0)
+// bgcolor(displaySlowSearchResults and searchInputS==index_stringS? color.fuchsia:na, title="Highlight BG: Slow Index Search", transp=0)
+
+// //////////////////////////////////////////////////////////////////////////////// VISUALS: COLORING BG BASED ON POSITION
+// istrF = index_stringF=="1000000"? #FF0538: 
+//  index_stringF=="1100000"? #FF410A:
+//  index_stringF=="1110000"? #FFAE0F:
+//  index_stringF=="1111000"? #E8FF14:
+//  index_stringF=="1111100"? #84FF19:
+//  index_stringF=="1111110"? #26FF1F:
+//  index_stringF=="1111111"? #26FF1F:na
+
+// istrS = index_stringS=="1000000"? #FF0538: 
+//  index_stringS=="1100000"? #FF410A:
+//  index_stringS=="1110000"? #FFAE0F:
+//  index_stringS=="1111000"? #E8FF14:
+//  index_stringS=="1111100"? #84FF19:
+//  index_stringS=="1111110"? #26FF1F:
+//  index_stringS=="1111111"? #26FF1F:na
+
+// displayFastTrend    = input(false, title="Show Fast Trendup BG")
+// displaySlowTrend    = input(false, title="Show Slow Trendup BG")
+// bgcolor(displayFastTrend? istrF:na, title="Fast BG Colors", transp=80)
+// bgcolor(displaySlowTrend? istrS:na, title="Slow BG Colors", transp=80)
+//==============================================================================
+// Check(indx, str)=> indx==tostring(str) and indx[1]!=tostring(str)
+// checkF   = index_stringF=="1000000"? true : index_stringF=="1111111" and index_stringF[1]!="1111111"? true:false
+// checkS   = index_stringS=="1000000"? true : index_stringS=="1111111" and index_stringS[1]!="1111111"? true:false
+
+// I should highlight when the RSI midline is inline with a support or resistance.
+// Can I get an average angle of where all the Vwap Moving averages are pointing?????
+//test     =((index_stringS=="0000000" and index_stringF=="0000000") and diff(close, f1)<=1) and f1<s7
+
+//plotshape(test,    color=color.green,  title="B",       text='B',  style=shape.labelup,   location=location.belowbar,  textcolor=color.white, transp=0, size=size.tiny)
+
+//mCheck  = (m1==f1 or m1==f2 or m1==f3 or m1==f4 or m1==f5 or m1==f6 or m1==f7 or m1==s1 or m1==s2 or m1==s3 or m1==s4 or m1==s5 or m1==s6 or m1==s7)
+//bgcolor(mCheck? color.white:na, transp=0)
+
+
+
+
+
+supertrendColor = close>supertrend? color.lime : close<supertrend? color.red : color.yellow
+
+
+// Trend Support and Resistance.... bubbles? Gives nice clean visuals in trending markets.
+//========================================================================================
+useCustomTimeframe  = input(true, title="Use customer timeframe for bubble S/R?")
+bubbleTF            = useCustomTimeframe? input(240, title="Timeframe (mins)") : timeframe.multiplier
+ema9    = ema(close, HTF(bubbleTF, 9))
+
+
+point1  = plot(ema9, color=color.fuchsia, transp=100)
+point2  = plot(rsi0, color=color.red, transp=100)
+
+
+closePosColor           = close>=ema9 and close>=rsi0? color.lime : close<ema9 and close>=rsi0? color.yellow : close<ema9 and close<rsi0? color.red : na
+
+potentialBreakoutColor  = ema9<=rsi0? color.red : closePosColor
+
+fill(point1, point2, potentialBreakoutColor, transp=70, title="Resistance Bubbles")
+//bgcolor(crossover(ema9, sma20)? color.white: crossunder(ema9,sma20)? color.fuchsia:na, transp=0, title="Major ema9/sma20 crossovers")
+
+
+r70 = rsiOnChart(70)
+r30 = rsiOnChart(30)
+
+
+plotshape(crossover(ema9,   rsi0),      color=color.green, textcolor=color.white, location=location.abovebar, style=shape.labelup,   text="9/Reset",  title="ema9/rsi0 Crossover")
+plotshape(crossunder(ema9,  rsi0),      color=color.red,   textcolor=color.white, location=location.belowbar, style=shape.labeldown, text="Reset/9",  title="ema9/rsi0 Crossunder")
+
+plotshape(crossover(close,  supertrend), color=#1b5e20,     textcolor=color.white, location=location.belowbar, style=shape.labeldown, text="ST",    title="cross over Supertrend")
+plotshape(crossunder(close, supertrend), color=color.red,   textcolor=color.white, location=location.abovebar, style=shape.labelup,   text="ST",    title="cross under Supertrend")
+
+plotshape(crossover(close,  r70),        color=color.green, textcolor=color.white, location=location.abovebar, style=shape.labelup,   text="OB",    title="RSI Overbought")
+plotshape(crossunder(close, r30),        color=#1b5e20,     textcolor=color.white, location=location.belowbar, style=shape.labeldown, text="OS",    title="RSI Oversold")
+
+plotshape(crossover(close,  r30),        color=#4CAF50,     textcolor=color.black, location=location.belowbar, style=shape.labelup,   text="rsi resetting", title="RSI cross above 30")
+plotshape(crossunder(close, r70),        color=#b71c1c,     textcolor=color.white, location=location.abovebar, style=shape.labeldown, text="rsi resetting", title="RSI cross below 70")
+
+//plotshape(longCondition, color=color.lime, style=shape.labelup, text="L")
+
+
+
+
+
+// RSI
+//----------------------------------------------------
+rsiResetLine    = input(true, title="Show RSI Reset?")
+plot(rsiResetLine? rsi0 : na, color=rygPure(rsi0), linewidth=4, transp=100, trackprice=true, title="Reset Price line")
+plot(close>r70? r70 : na, color=color.orange, style=plot.style_linebr, linewidth=2, transp=100, trackprice=true, title="RSI OB Line")
+plot(close<r30? r30 : na, color=color.blue,   style=plot.style_linebr, linewidth=2, transp=100, trackprice=true, title="RSI OS Line")
+
+
+
+// Label for RSI reset line
+//--------------------------
+dt          = time - time[1]
+adjustLabel = input(15, title="Adjust label to right")
+lbl_reset   = label.new(time + adjustLabel*dt, rsi0, 'RESET', color=close>=rsi0?color.green:color.red, textcolor=color.white, xloc=xloc.bar_time)
+label.delete(lbl_reset[1])
+
+
+
+
+
+
+
+// Seperate from above code
+//------------------------------------------------------------------------------
+showBounceZones    = input(true, title="Show potential rally on leaving these zones. (Still testing)")
+
+unders1_superTrend  = close<s1 and close<supertrend ? 1 : 0
+
+bgcolor(showBounceZones and unders1_superTrend? color.blue : na, transp=80)
+
+
+
+lastVol     = volume[1]*2
+volCheck    = volume>lastVol? 1 : 0
+dirCheck    = close>close[1] and close>open and (atr(20)>atr(20)[1])? 1 : 0
+plotshape(volCheck and dirCheck and unders1_superTrend,  color=color.blue, textcolor=color.white, location=location.belowbar, style=shape.labelup, text="volUp",  title="Volume Up")

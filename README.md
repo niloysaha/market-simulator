@@ -7,6 +7,8 @@ Bitfinex does have a python library already, and I'll eventually use it but this
 ## Future plans
 NodeJS - Instead of running off my PC in a terminal window I'll have this running on NodeJS somewhere
 
+
+
 ## How to use
 Right now just run the `main.py` to start and a simple text output will show you how things are going.
 
