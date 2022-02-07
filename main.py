@@ -13,12 +13,13 @@ counter = 0
 lastClose = Candle('15m').close
 print('Last 5m close:' + str(lastClose))
 
+
+# In Pinescript, previous values are accessed via an array and I want to emulate that as much as possible here because all of my own algorithms
+# for trading signals were created parsing arrays like this.
 open = []
 close = []
 high = []
 low = []
-
-
 
 
 def getClose():
@@ -43,13 +44,9 @@ while(getClose() < 45000):
     print('=====================================================')
     print('Current Close: ' + str(getClose()))
 
+    # adds close information to an array to be accessed later.
     close.insert(0, getClose())
 
-    for closes in close:
-        print("bar close: " + str(closes))
-
-
-    
 
     # check total qty of shares from all positions
     totalqty = totalQty()
