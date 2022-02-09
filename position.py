@@ -13,3 +13,4 @@ class Position:
         self.stopPrice = self.entryPrice * (1 - stop)
         self.qty    = qty
         self.value  = self.entryPrice * qty
+        
