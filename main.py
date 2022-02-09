@@ -43,14 +43,15 @@ def openPositions():
     return openPos
 
 
-def displayData():
+def displayData(close):
     print("---------------------------------------------")
-    print('Total Profit: '      + str(profit))
-    print('Total Money Lost: ' + str(moneyLost))
-    print('Positions total: '   + str(len(positionList)))
-    print('Open Positions: '    + str(len(positionList) - (wins + losses)))
-    print('Wins: '              + str(wins))
-    print('Losses: '            + str(losses))
+    print('Close: [' + str(close) + ']',
+          'Wins: ['     + str(wins)       + ']',
+          'Profit: ['   + str("{:.2f}".format(profit))     + ']',
+          'Losses: ['   + str("{:.2f}".format(losses))     + ']',
+          'Loss: ['     + str("{:.2f}".format(moneyLost))  + ']',
+          'Open Pos: [' + str(len(positionList) - (wins + losses)) + ']',
+          'Total Pos: ['+ str(len(positionList)) + ']')
 
 
 while(getClose() < 45000):
@@ -62,16 +63,11 @@ while(getClose() < 45000):
     close = []
     high = []
     low = []
-    
+
     close.insert(0, Candle(timeframe).close)
     open.insert(0, Candle(timeframe).open)
     high.insert(0, Candle(timeframe).high)
     low.insert(0, Candle(timeframe).low)
-
-
-    # display current close price
-    print('=====================================================')
-    print('Current Close: ' + str(close[0]))
 
 
 
@@ -81,11 +77,11 @@ while(getClose() < 45000):
         # Buy immediately if there are 0 open positions (For testing purposes)
         if(openPositions() == 0):
             positionList.insert(0, Position(posSize, close[0], 0.001, 0.003))
-            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[0].exitPrice) + '] stop: [' + str(positionList[0].stopPrice) + ']')
+            print('Added a position - ' + str(len(positionList)) + ' target: [' + str("{:.2f}".format(positionList[0].exitPrice)) + '] stop: [' + str("{:.2f}".format(positionList[0].stopPrice)) + ']')
         # Buy if close is lower than previous position entryPrice
         elif((close[0]) < ((positionList[0].entryPrice))):
             positionList.insert(0, Position(posSize, close[0], 0.001, 0.003))
-            print('Added a position - ' + str(len(positionList)) + ' target: [' + str(positionList[0].exitPrice) + '] stop: [' + str(positionList[0].stopPrice) + ']')
+            print('Added a position - ' + str(len(positionList)) + ' target: [' + str("{:.2f}".format(positionList[0].exitPrice)) + '] stop: [' + str("{:.2f}".format(positionList[0].stopPrice)) + ']')
 
 
 
@@ -110,8 +106,8 @@ while(getClose() < 45000):
                 pos.qty     = 0
                 pos.positionIsOpen = False
 
+    # Basic data and state information
+    displayData("{:.2f}".format(close[0]))
 
-    displayData()
-
-    time.sleep(10)
+    time.sleep(5)
 
