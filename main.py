@@ -17,14 +17,17 @@ from candle import Candle
 from position import Position
 
 
-# TO-DO:
+
 
 
 # Variables
 #---------------------------
 capital         = 200.00
 posSize         = 200
-timeframe       = "5m"
+timeframe_SM    = "1m" # for testing
+timeframe_MD    = "15m"
+timeframe_LG    = "1h"
+sleepSeconds    = 60 # Number of seconds between checking price
 maxPositions    = 10
 
 profit          = 0
@@ -47,8 +50,8 @@ low = []
 
 # Functions
 #---------------------------
-def getClose(timeframe):
-    return Candle(timeframe).close
+def getClose(timeframe_SM):
+    return Candle(timeframe_SM).close
 
 
 
@@ -64,7 +67,7 @@ def openPositions():
 
 def displayData(close):
     print("---------------------------------------------")
-    print('Close: [' + str(Candle(timeframe).close) + ']',
+    print('Close: [' + str(Candle(timeframe_SM).close) + ']',
           'Wins: ['     + str(wins)       + ']',
           'Profit: ['   + str("{:.2f}".format(profit))     + ']',
           'Losses: ['   + str("{:.2f}".format(losses))     + ']',
@@ -82,7 +85,7 @@ def getHistory(length):
     volumeHistory = []
 
     # Pulls the last 100 candles
-    hist = requests.get('https://api-pub.bitfinex.com/v2/candles/trade:'+timeframe+':tXRPUSD/hist').json()
+    hist = requests.get('https://api-pub.bitfinex.com/v2/candles/trade:'+timeframe_SM+':tXRPUSD/hist').json()
 
     for i in range(length):
         openHistory.append(hist[i][1])
@@ -129,7 +132,7 @@ def ExpMovingAverage(values, window):
 # Conditional for while loop will eventually change to something more goal oriented
 # For now it's set for testing by looping while closing price stays below some arbitrary number.
 #===========================================================================================================================================
-while(getClose(timeframe) < 60000):
+while(getClose(timeframe_SM) < 60000):
 
     #=================================================================
     # Moving Averages
@@ -188,5 +191,5 @@ while(getClose(timeframe) < 60000):
     # Basic data and state information
     displayData("{:.4f}".format(close[0]))
 
-    time.sleep(300)
+    time.sleep(sleepSeconds)
 
